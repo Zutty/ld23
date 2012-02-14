@@ -15,6 +15,7 @@ package net.noiseinstitute.game {
         private static const BACKGROUND_COLOUR:uint = 0x000000;
         private static const FOREGROUND_COLOUR:uint = 0xFFFFFF;
 
+        //noinspection JSUnusedLocalSymbols
         [Embed(source="/net/flashpunk/graphics/04B_03__.TTF", embedAsCFF="false", fontFamily="default")]
         private static const FONT:Class;
 

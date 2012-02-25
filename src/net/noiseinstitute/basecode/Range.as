@@ -3,7 +3,7 @@ package net.noiseinstitute.basecode {
         public static function wrap(n:Number, min:Number, max:Number):Number {
             if (n < min || n > max) {
                 n -= min;
-                max -= min;
+                max = max - min + 1;
                 if (n < 0) {
                     n += max * Math.ceil(-n/max);
                 }

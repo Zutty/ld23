@@ -1,5 +1,7 @@
 package net.noiseinstitute.basecode {
+    import flash.geom.Matrix;
     import flash.geom.Point;
+    import flash.geom.Rectangle;
 
     /** Various statically allocated resources, to reduce garbage collection.
      * Don't expect any of these to retain their value across function calls! */

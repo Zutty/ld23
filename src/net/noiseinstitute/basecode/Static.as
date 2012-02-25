@@ -6,5 +6,7 @@ package net.noiseinstitute.basecode {
     public class Static {
         public static const point:Point = new Point();
         public static const point2:Point = new Point();
+        public static const rect:Rectangle = new Rectangle();
+        public static const matrix:Matrix = new Matrix();
     }
 }

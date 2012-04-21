@@ -3,8 +3,10 @@ package uk.co.zutty.ld23.entity
     import flash.geom.Point;
     
     import net.flashpunk.Entity;
+    import net.flashpunk.FP;
     import net.flashpunk.Graphic;
     import net.flashpunk.Mask;
+    import net.flashpunk.graphics.Image;
     import net.flashpunk.graphics.Spritemap;
     import net.noiseinstitute.basecode.VectorMath;
     
@@ -37,7 +39,15 @@ package uk.co.zutty.ld23.entity
             _type = type;
             _spritemap.play("type"+_type+"_stand");
             
+            // HACK!
+            _spritemap.tintMode = 1;//Image.TINTING_COLORIZE;
+            _spritemap.tinting = -.8;
+            
             _move = new Point(0, 0);
+        }
+        
+        public function set tintColour(colour:uint):void {
+            _spritemap.color = ~colour;
         }
         
         public function move(direction:Number):void {

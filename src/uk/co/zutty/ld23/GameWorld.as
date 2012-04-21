@@ -18,6 +18,7 @@ package uk.co.zutty.ld23 {
             v.x = FP.rand(640);
             v.y = FP.rand(480);
             v.move(FP.rand(360));
+            v.tintColour = FP.choose(0xff0000, 0x0000ff, 0xffff00);
             add(v);
             return v;
         }

@@ -3,11 +3,15 @@ package uk.co.zutty.ld23 {
     import net.flashpunk.World;
     
     import uk.co.zutty.ld23.entity.HutPart;
+    import uk.co.zutty.ld23.entity.Terrain;
     import uk.co.zutty.ld23.entity.Voter;
 
     public class GameWorld extends World {
         public function GameWorld() {
             super();
+            for(var i:int = 0; i < 10; i++) {
+                add(Terrain.make(FP.rand(640), FP.rand(480), FP.choose(1,1,1,1,1,1,2,3,4,4,5,5,6,6,6)));
+            }
             addVoter(1, FP.rand(640), FP.rand(480));            
             addVoter(2, FP.rand(640), FP.rand(480));            
             addVoter(3, FP.rand(640), FP.rand(480));            

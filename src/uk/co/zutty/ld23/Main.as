@@ -8,7 +8,7 @@ package uk.co.zutty.ld23
         public function Main() {
             super(640, 480, 60, false);
             
-            FP.screen.color = 0xffffff;
+            FP.screen.color = 0xcaa2c8;
             //FP.console.enable();
 
             FP.world = new GameWorld();

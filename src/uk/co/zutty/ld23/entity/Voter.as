@@ -12,6 +12,7 @@ package uk.co.zutty.ld23.entity
     
     import uk.co.zutty.ld23.game.Party;
     import uk.co.zutty.ld23.game.Poll;
+    import uk.co.zutty.ld23.game.Tribe;
     
     public class Voter extends Entity {
 
@@ -23,9 +24,14 @@ package uk.co.zutty.ld23.entity
         private var _spritemap:Spritemap;
         private var _type:int;
         private var _move:Point;
+        private var _waypoint:Point;
+        private var _tribe:Tribe;
 
-        public function Voter(type:int = 1) {
+        public function Voter(tribe:Tribe, type:int = 1) {
             super();
+            
+            _tribe = tribe;
+            _tribe.addVoter(this);
             
             _spritemap = new Spritemap(VOTERS_IMAGE, 48, 48);
             _spritemap.add("type1_stand", [0]);
@@ -46,11 +52,23 @@ package uk.co.zutty.ld23.entity
             _spritemap.tintMode = 1;//Image.TINTING_COLORIZE;
             _spritemap.tinting = -.8;
             
+            _waypoint = null;
             _move = new Point(0, 0);
         }
         
         public function set tintColour(colour:uint):void {
             _spritemap.color = ~colour;
+        }
+        
+        public function wander():void {
+            var p:Point = VectorMath.polar(FP.rand(360), FP.rand(200) + 100);
+            p.x += _tribe.hut.x;
+            p.y += _tribe.hut.y;
+            moveToPoint(p);
+        }
+        
+        public function moveToPoint(waypoint:Point):void {
+            _waypoint = waypoint;
         }
         
         public function move(direction:Number):void {
@@ -63,12 +81,32 @@ package uk.co.zutty.ld23.entity
             }
         }
         
+        public function stop():void {
+            _move.x = 0;
+            _move.y = 0;
+            _spritemap.play("type"+_type+"_stand");
+        }
+        
         public function vote(poll:Poll):Party {
             return FP.choose(poll.parties);
         }
         
         override public function update():void {
             super.update();
+            
+            if(_waypoint) {
+                FP.point.x = _waypoint.x - x;
+                FP.point.y = _waypoint.y - y;
+
+                if(VectorMath.magnitude(FP.point) <= SPEED) {
+                    _waypoint = null;
+                    stop();
+                } else {
+                    move(VectorMath.angle(FP.point));
+                }
+            } else if(Math.random() < 0.05) {
+                wander();
+            }
             
             x += _move.x;
             y += _move.y;

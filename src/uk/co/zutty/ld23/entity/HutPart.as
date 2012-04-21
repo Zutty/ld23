@@ -23,11 +23,12 @@ package uk.co.zutty.ld23.entity
         private var _type:int;
         private var _isFloor:Boolean;
 
-        public function HutPart(part:int, type:int = 1) {
+        public function HutPart(part:int, flip:Boolean, type:int = 1) {
             super();
             
             _image = new Image(HUT_IMAGE, new Rectangle(144 * part, 0, 144, 144));
             _image.centerOrigin();
+            //_image.flipped = flip;
             graphic = _image;
             
             _isFloor = part == PART_FLOOR;

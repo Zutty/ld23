@@ -1,8 +1,11 @@
 package uk.co.zutty.ld23 {
+    import flash.geom.Point;
+    
     import net.flashpunk.FP;
     import net.flashpunk.World;
     import net.flashpunk.utils.Input;
     import net.flashpunk.utils.Key;
+    import net.noiseinstitute.basecode.VectorMath;
     
     import uk.co.zutty.ld23.entity.HutPart;
     import uk.co.zutty.ld23.entity.Terrain;
@@ -21,8 +24,6 @@ package uk.co.zutty.ld23 {
         public function GameWorld() {
             super();
             
-            _tribe = new Tribe();
-            
             _parties = new Vector.<Party>();
             _playerParty = new Party("Fingerlickans", 0xff0000);
             _parties[_parties.length] = _playerParty;
@@ -32,29 +33,36 @@ package uk.co.zutty.ld23 {
                 add(Terrain.make(FP.rand(640), FP.rand(480), FP.choose(1,1,1,1,1,1,2,3,4,4,5,5,6,6,6)));
             }
             
-            addHut(90, 120, 6);
+            _tribe = makeTribe(240, 160, 6);
         }
         
-        private function addHut(x:Number, y:Number, voters:int):void {
+        private function makeTribe(x:Number, y:Number, voters:int):Tribe {
+            var tribe:Tribe = new Tribe();
+            
             var colour:uint = 0xaaaaaa;//FP.choose(0xff0000, 0x0000ff, 0xffff00);
             var hut:Hut = new Hut(x, y);
             add(hut.roof)
             add(hut.floor)
-            _tribe.hut = hut;
+            tribe.hut = hut;
             
             for(var i:int = 0; i < voters; i++) {
-                addVoter(FP.choose(1,2,3,4), x - 120 + FP.rand(240), y - 120 + FP.rand(240));            
+                var p:Point = VectorMath.polar(FP.rand(360), FP.rand(100) + 100);
+                p.x += tribe.hut.x;
+                p.y += tribe.hut.y;
+
+                addVoter(tribe, FP.choose(1,2,3,4), p.x, p.y);            
             }
+            
+            return tribe;
         }
         
-        private function addVoter(type:int, x:Number, y:Number):Voter {
-            var v:Voter = new Voter(type);
+        private function addVoter(tribe:Tribe, type:int, x:Number, y:Number):Voter {
+            var v:Voter = new Voter(tribe, type);
             v.x = x;
             v.y = y;
-            v.move(FP.rand(360));
+            v.wander();
             v.tintColour = 0xaaaaaa;//FP.choose(0xff0000, 0x0000ff, 0xffff00);
             add(v);
-            _tribe.addVoter(v);
             return v;
         }
         

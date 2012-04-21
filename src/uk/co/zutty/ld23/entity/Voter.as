@@ -55,6 +55,8 @@ package uk.co.zutty.ld23.entity
             
             x += _move.x;
             y += _move.y;
+            
+            layer = -y;
         }
     }
 }

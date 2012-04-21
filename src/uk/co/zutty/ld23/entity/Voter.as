@@ -10,6 +10,9 @@ package uk.co.zutty.ld23.entity
     import net.flashpunk.graphics.Spritemap;
     import net.noiseinstitute.basecode.VectorMath;
     
+    import uk.co.zutty.ld23.game.Party;
+    import uk.co.zutty.ld23.game.Poll;
+    
     public class Voter extends Entity {
 
         [Embed(source = 'voters.png')]
@@ -58,6 +61,10 @@ package uk.co.zutty.ld23.entity
                 _spritemap.play("type"+_type+"_walk");
                 _spritemap.flipped = _move.x >= 0;
             }
+        }
+        
+        public function vote(poll:Poll):Party {
+            return poll.parties[0];
         }
         
         override public function update():void {

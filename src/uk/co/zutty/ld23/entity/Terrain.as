@@ -13,6 +13,13 @@ package uk.co.zutty.ld23.entity
         [Embed(source = 'natural.png')]
         public static const TERRAIN_IMAGE:Class;
         
+        public static const TYPE_BIG_CRATER:int = 1;
+        public static const TYPE_SMALL_CRATERS:int = 2;
+        public static const TYPE_CRACK:int = 3;
+        public static const TYPE_ROCK:int = 4;
+        public static const TYPE_BIG_PLANT:int = 5;
+        public static const TYPE_SMALL_PLANT:int = 6;
+        
         private var _width:int;
         private var _height:int;
         

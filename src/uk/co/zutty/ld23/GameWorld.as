@@ -82,9 +82,7 @@ package uk.co.zutty.ld23 {
                 
                 poll.countVotes();
                 
-                if(poll.winner) {
-                    _tribe.hut.tintColour = poll.winner.colour;
-                }
+                _tribe.hut.tintColour = (poll.winner) ? poll.winner.colour : 0xaaaaaa;
             }
         }
     }

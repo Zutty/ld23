@@ -46,7 +46,9 @@ package uk.co.zutty.ld23.game
             var mostVotes:Number = 0;
             
             for each(var party:Party in _parties) {
-                if(_votes[party] > mostVotes) {
+                if(_votes[party] == mostVotes) {
+                    _winner = null;
+                } else if(_votes[party] > mostVotes) {
                     mostVotes = _votes[party];
                     _winner = party;
                 }

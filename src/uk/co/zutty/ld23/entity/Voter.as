@@ -11,8 +11,9 @@ package uk.co.zutty.ld23.entity
         private static const VOTERS_IMAGE:Class;
         
         private var _spritemap:Spritemap;
+        private var _type:int;
 
-        public function Voter() {
+        public function Voter(type:int = 1) {
             super();
             
             _spritemap = new Spritemap(VOTERS_IMAGE, 48, 48);
@@ -26,7 +27,8 @@ package uk.co.zutty.ld23.entity
             _spritemap.add("type4_walk", [16,17,18,19], 12, true);
             graphic = _spritemap;
             
-            _spritemap.play("type4_walk");
+            _type = type;
+            _spritemap.play("type"+_type+"_walk");
             _spritemap.flipped = true;
         }
         

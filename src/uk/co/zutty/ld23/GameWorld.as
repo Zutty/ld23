@@ -1,4 +1,5 @@
 package uk.co.zutty.ld23 {
+    import net.flashpunk.FP;
     import net.flashpunk.World;
     
     import uk.co.zutty.ld23.entity.Voter;
@@ -6,11 +7,18 @@ package uk.co.zutty.ld23 {
     public class GameWorld extends World {
         public function GameWorld() {
             super();
-            
-            var v:Voter = new Voter();
-            v.x = 50;
-            v.y = 50;
+            addVoter(1);            
+            addVoter(2);            
+            addVoter(3);            
+            addVoter(4);            
+        }
+        
+        private function addVoter(type:int):Voter {
+            var v:Voter = new Voter(type);
+            v.x = FP.rand(640);
+            v.y = FP.rand(480);
             add(v);
+            return v;
         }
     }
 }

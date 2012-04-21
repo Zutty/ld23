@@ -1,6 +1,7 @@
 package uk.co.zutty.ld23.entity
 {
     import flash.geom.Point;
+    import flash.geom.Rectangle;
     
     import net.flashpunk.Entity;
     import net.flashpunk.FP;
@@ -19,9 +20,13 @@ package uk.co.zutty.ld23.entity
         [Embed(source = 'voters.png')]
         private static const VOTERS_IMAGE:Class;
         
+        [Embed(source = 'icons.png')]
+        private static const ICONS_IMAGE:Class;
+
         private static const SPEED:Number = 0.8;
         
         private var _spritemap:Spritemap;
+        private var _bubble:Spritemap;
         private var _type:int;
         private var _move:Point;
         private var _waypoint:Point;
@@ -34,16 +39,20 @@ package uk.co.zutty.ld23.entity
             _tribe.addVoter(this);
             
             _spritemap = new Spritemap(VOTERS_IMAGE, 48, 48);
-            _spritemap.add("type1_stand", [0]);
-            _spritemap.add("type1_walk", [1,2,3,4], 12, true);
-            _spritemap.add("type2_stand", [5]);
-            _spritemap.add("type2_walk", [6,7,8,9], 12, true);
-            _spritemap.add("type3_stand", [10]);
-            _spritemap.add("type3_walk", [11,12,13,14], 12, true);
-            _spritemap.add("type4_stand", [15]);
-            _spritemap.add("type4_walk", [16,17,18,19], 12, true);
+            for(var n:int = 1; n <= 4; n++) {
+                addAnimRow(n);
+            }
             _spritemap.centerOrigin()
-            graphic = _spritemap;
+            addGraphic(_spritemap);
+            
+            _bubble = new Spritemap(ICONS_IMAGE, 24, 24);
+            _bubble.add("member", [0]);
+            _bubble.add("question", [1]);
+            _bubble.centerOrigin();
+            _bubble.y -= 30;
+            _bubble.play("question");
+            //_bubble.visible = false;
+            addGraphic(_bubble);
             
             _type = type;
             _spritemap.play("type"+_type+"_stand");
@@ -55,6 +64,13 @@ package uk.co.zutty.ld23.entity
             _waypoint = null;
             _move = new Point(0, 0);
         }
+        
+        private function addAnimRow(type:int):void {
+            var off:int = (type - 1) * 7; 
+            _spritemap.add("type"+type+"_stand", [off + 0]);
+            _spritemap.add("type"+type+"_walk", [off + 1, off + 2, off + 3, off + 4], 12, true);
+            _spritemap.add("type"+type+"_talk", [off + 5, off + 6], 8, true);
+        } 
         
         public function set tintColour(colour:uint):void {
             _spritemap.color = ~colour;
@@ -104,7 +120,7 @@ package uk.co.zutty.ld23.entity
                 } else {
                     move(VectorMath.angle(FP.point));
                 }
-            } else if(Math.random() < 0.05) {
+            } else if(Math.random() < 0.01) {
                 wander();
             }
             

@@ -64,7 +64,7 @@ package uk.co.zutty.ld23.entity
         }
         
         public function vote(poll:Poll):Party {
-            return poll.parties[0];
+            return FP.choose(poll.parties);
         }
         
         override public function update():void {

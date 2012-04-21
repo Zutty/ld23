@@ -7,19 +7,21 @@ package uk.co.zutty.ld23 {
     import uk.co.zutty.ld23.entity.HutPart;
     import uk.co.zutty.ld23.entity.Terrain;
     import uk.co.zutty.ld23.entity.Voter;
+    import uk.co.zutty.ld23.game.Hut;
     import uk.co.zutty.ld23.game.Party;
     import uk.co.zutty.ld23.game.Poll;
+    import uk.co.zutty.ld23.game.Tribe;
 
     public class GameWorld extends World {
         
         private var _parties:Vector.<Party>;
         private var _playerParty:Party;
-        private var _voters:Vector.<Voter>;
+        private var _tribe:Tribe;
         
         public function GameWorld() {
             super();
             
-            _voters = new Vector.<Voter>();
+            _tribe = new Tribe();
             
             _parties = new Vector.<Party>();
             _playerParty = new Party("Fingerlickans", 0xff0000);
@@ -35,16 +37,10 @@ package uk.co.zutty.ld23 {
         
         private function addHut(x:Number, y:Number, voters:int):void {
             var colour:uint = 0xaaaaaa;//FP.choose(0xff0000, 0x0000ff, 0xffff00);
-            var roof:HutPart = new HutPart(HutPart.PART_ROOF);
-            roof.tintColour = colour;
-            roof.x = x;
-            roof.y = y;
-            add(roof)
-            var floor:HutPart = new HutPart(HutPart.PART_FLOOR);
-            floor.tintColour = colour;
-            floor.x = x;
-            floor.y = y;
-            add(floor)
+            var hut:Hut = new Hut(x, y);
+            add(hut.roof)
+            add(hut.floor)
+            _tribe.hut = hut;
             
             for(var i:int = 0; i < voters; i++) {
                 addVoter(FP.choose(1,2,3,4), x - 120 + FP.rand(240), y - 120 + FP.rand(240));            
@@ -58,7 +54,7 @@ package uk.co.zutty.ld23 {
             v.move(FP.rand(360));
             v.tintColour = 0xaaaaaa;//FP.choose(0xff0000, 0x0000ff, 0xffff00);
             add(v);
-            _voters[_voters.length] = v;
+            _tribe.addVoter(v);
             return v;
         }
         
@@ -66,14 +62,20 @@ package uk.co.zutty.ld23 {
             super.update();
             
             if(Input.pressed(Key.SPACE)) {
-                var poll:Poll = new Poll(_voters.length, _parties);
+                var poll:Poll = new Poll(_tribe.size, _parties);
                 
-                for each(var voter:Voter in _voters) {
+                for each(var voter:Voter in _tribe.voters) {
                     var vote:Party = voter.vote(poll);
                     if(vote) {
-                        poll.countVote(vote);
+                        poll.castVote(vote);
                         voter.tintColour = vote.colour;
                     }
+                }
+                
+                poll.countVotes();
+                
+                if(poll.winner) {
+                    _tribe.hut.tintColour = poll.winner.colour;
                 }
             }
         }

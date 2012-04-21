@@ -17,6 +17,7 @@ package uk.co.zutty.ld23 {
             var v:Voter = new Voter(type);
             v.x = FP.rand(640);
             v.y = FP.rand(480);
+            v.move(FP.rand(360));
             add(v);
             return v;
         }

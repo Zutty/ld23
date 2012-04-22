@@ -84,7 +84,7 @@ package uk.co.zutty.ld23 {
             }
             
             if(Input.mousePressed) {
-                var picked:Entity = collidePoint("mob", mouseX, mouseY) || collidePoint("mob_talk", mouseX, mouseY);
+                var picked:Entity = collidePoint("mob", mouseX, mouseY);
                 
                 if(picked && picked is Voter) {
                     var v:Voter = picked as Voter;

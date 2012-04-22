@@ -52,6 +52,9 @@ package uk.co.zutty.ld23.entity
         private var _state:int;
         private var _timer:uint;
         private var _conversationLength:int;
+        
+        private var _isMinion:Boolean;
+        private var _party:Party;
 
         public function Voter(tribe:Tribe, type:int = 1) {
             super();
@@ -66,15 +69,16 @@ package uk.co.zutty.ld23.entity
             _spritemap.centerOrigin()
             addGraphic(_spritemap);
             
+            setHitbox(48, 48, 24, 24);
+            
             _bubble = new Spritemap(ICONS_IMAGE, 24, 24);
-            _bubble.add("member", [0]);
+            _bubble.add("minion", [0]);
             _bubble.add("question", [2]);
             _bubble.add("weather", [7]);
             _bubble.add("plant", [9]);
             _bubble.add("hut", [10]);
             _bubble.centerOrigin();
             _bubble.y -= 30;
-            _bubble.play("question");
             _bubble.visible = false;
             addGraphic(_bubble);
             
@@ -109,6 +113,27 @@ package uk.co.zutty.ld23.entity
             _spritemap.color = ~colour;
         }
         
+        public function get party():Party {
+            return _party;
+        }
+        
+        public function set party(p:Party):void {
+            _party = p;
+            tintColour = p.colour;
+        }
+        
+        public function get isMinion():Boolean {
+            return _isMinion;
+        }
+        
+        public function makeMinion(party:Party):void {
+            _isMinion = true;
+            this.party = party;
+            _bubble.play("minion");
+            _bubble.visible = true;
+        }
+
+        // States
         public function wander():void {
             var p:Point = VectorMath.polar(FP.rand(360), FP.rand(200) + 100);
             p.x += _tribe.hut.x;
@@ -127,6 +152,7 @@ package uk.co.zutty.ld23.entity
             _state = STATE_INTERCEPT;
         }
         
+        // Movement
         public function moveToPoint(waypoint:Point):void {
             _waypoint = waypoint;
         }
@@ -147,6 +173,7 @@ package uk.co.zutty.ld23.entity
             _spritemap.play("type"+_type+"_stand");
         }
         
+        // Conversation
         public function talkTo(_target:Voter):void {
             // Target yields control to this voter
             speak();
@@ -167,34 +194,34 @@ package uk.co.zutty.ld23.entity
         public function listen():void {
             stop();
             _state = STATE_CONVERSE_LISTEN;
-            _bubble.visible = false;
+            _bubble.visible = isMinion;
+            if(isMinion) {
+                _bubble.play("minion");
+            }
         }
         
         public function startTalking():void {
-            type = "mob_talk";
             _conversationLength = 2+FP.rand(2);
         }
 
         public function stopTalking():void {
             idle();
-            type = "mob";
             (_target as Voter).idle();
-            _target.type = "mob";
             _bubble.visible = false;
         }
 
         public function get isConversing():Boolean {
-            return (_state == STATE_CONVERSE_TALK || _state == STATE_CONVERSE_LISTEN) && _target != null;
+            return (_state == STATE_CONVERSE_READY || _state == STATE_CONVERSE_TALK || _state == STATE_CONVERSE_LISTEN) && _target != null;
         }
         
         public function converseInterrupt():Boolean {
             if(_state == STATE_IDLE || _state == STATE_WANDER) {
                 _state = STATE_CONVERSE_READY;
-                type = "mob_talk";
             }
             return _state == STATE_CONVERSE_READY;
         }
         
+        // Voting/party stuff
         public function vote(poll:Poll):Party {
             return FP.choose(poll.parties);
         }
@@ -282,13 +309,14 @@ package uk.co.zutty.ld23.entity
                 return null;
             }
             
-            var target:Entity = Main.gameworld.nearestToEntity("mob", this);
+            var target:Entity = Main.gameworld.nearestToEntityFilter("mob", this, isNotTalking);
+            
             var valid:Boolean = target != null && distanceFrom(target) <= INTERCEPT_RANGE;
             return valid ? target : null;
         }
         
-        private function isBusy(e:Entity):Boolean {
-            return _target is Voter && ((_target as Voter).isConversing || (_target as Voter).state == STATE_CONVERSE_READY);
+        private function isNotTalking(v:Voter):Boolean {
+            return !v.isConversing;
         }
     }
 }

@@ -1,6 +1,7 @@
 package uk.co.zutty.ld23 {
     import flash.geom.Point;
     
+    import net.flashpunk.Entity;
     import net.flashpunk.FP;
     import net.flashpunk.World;
     import net.flashpunk.utils.Input;
@@ -15,7 +16,7 @@ package uk.co.zutty.ld23 {
     import uk.co.zutty.ld23.game.Poll;
     import uk.co.zutty.ld23.game.Tribe;
 
-    public class GameWorld extends World {
+    public class GameWorld extends ExtWorld {
         
         private var _parties:Vector.<Party>;
         private var _playerParty:Party;
@@ -80,6 +81,15 @@ package uk.co.zutty.ld23 {
                 poll.countVotes();
                 
                 _tribe.hut.tintColour = (poll.winner) ? poll.winner.colour : 0xaaaaaa;
+            }
+            
+            if(Input.mousePressed) {
+                var picked:Entity = collidePoint("mob", mouseX, mouseY) || collidePoint("mob_talk", mouseX, mouseY);
+                
+                if(picked && picked is Voter) {
+                    var v:Voter = picked as Voter;
+                    v.makeMinion(_playerParty);
+                }
             }
         }
     }

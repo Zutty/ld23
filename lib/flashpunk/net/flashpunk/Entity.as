@@ -766,7 +766,7 @@ package net.flashpunk
 		/** @private */ internal var _renderPrev:Entity;
 		/** @private */ internal var _renderNext:Entity;
 		/** @private */ internal var _typePrev:Entity;
-		/** @private */ internal var _typeNext:Entity;
+		/** @private */ public var _typeNext:Entity;
 		/** @private */ internal var _recycleNext:Entity;
 		
 		// Collision information.

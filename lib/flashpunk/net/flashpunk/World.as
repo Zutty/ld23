@@ -1182,7 +1182,7 @@
 		/** @private */	private var _layerCount:Array = [];
 		/** @private */	private var _layerSort:Boolean;
 		/** @private */	private var _classCount:Dictionary = new Dictionary;
-		/** @private */	internal var _typeFirst:Object = { };
+		/** @private */	public var _typeFirst:Object = { };
 		/** @private */	private var _typeCount:Object = { };
 		/** @private */	private static var _recycled:Dictionary = new Dictionary;
 		/** @private */	internal var _entityNames:Dictionary = new Dictionary;

@@ -11,6 +11,7 @@ package uk.co.zutty.ld23 {
     import uk.co.zutty.ld23.entity.HutPart;
     import uk.co.zutty.ld23.entity.Terrain;
     import uk.co.zutty.ld23.entity.Voter;
+    import uk.co.zutty.ld23.game.AIPlayer;
     import uk.co.zutty.ld23.game.Hut;
     import uk.co.zutty.ld23.game.Party;
     import uk.co.zutty.ld23.game.Poll;
@@ -18,7 +19,12 @@ package uk.co.zutty.ld23 {
 
     public class GameWorld extends ExtWorld {
         
+        private static const AI_UPDATE_TIME:int = 100;
+        
         private var _parties:Vector.<Party>;
+        private var _aiPlayers:Vector.<AIPlayer>;
+        private var _nextAiPlayer:uint;
+        private var _aiUpdateTimer:int;
         private var _playerParty:Party;
         private var _tribe:Tribe;
         private var _currentPoll:Poll;
@@ -29,13 +35,23 @@ package uk.co.zutty.ld23 {
             _parties = new Vector.<Party>();
             _playerParty = new Party("Fingerlickans", 0xff0000);
             _parties[_parties.length] = _playerParty;
-            _parties[_parties.length] = new Party("Tastycrats", 0x0000ff);
+            
+            _aiPlayers = new Vector.<AIPlayer>();
+            var ai:AIPlayer = new AIPlayer();
+            _parties[_parties.length] = ai.party;
+            _aiPlayers[_aiPlayers.length] = ai;
+            _nextAiPlayer = 0;
             
             for(var i:int = 0; i < 10; i++) {
                 add(Terrain.make(FP.rand(640), FP.rand(480), FP.choose(1,1,1,1,1,1,2,3,4,4,5,5,6,6,6)));
             }
             
             _tribe = makeTribe(320, 240, 6);
+            _aiUpdateTimer = AI_UPDATE_TIME;
+        }
+        
+        public function get tribe():Tribe {
+            return _tribe;
         }
         
         private function makeTribe(x:Number, y:Number, voters:int):Tribe {
@@ -67,6 +83,16 @@ package uk.co.zutty.ld23 {
         
         override public function update():void {
             super.update();
+            
+            if(_aiUpdateTimer > 0) {
+                _aiUpdateTimer--;
+            }
+            
+            if(_aiUpdateTimer == 0) {
+                _aiPlayers[_nextAiPlayer].update(this);
+                _nextAiPlayer = (_nextAiPlayer + 1) % _aiPlayers.length;
+                _aiUpdateTimer = AI_UPDATE_TIME;
+            }
             
             if(Input.pressed(Key.SPACE)) {
                 _currentPoll = new Poll(_tribe.size, _parties);

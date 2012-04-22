@@ -51,6 +51,7 @@ package uk.co.zutty.ld23.entity
         private var _bubble:Spritemap;
         private var _type:int;
         private var _move:Point;
+        private var _actualMove:Point;
         private var _noCollide:Boolean;
         
         private var _waypoint:Waypoint;
@@ -112,6 +113,7 @@ package uk.co.zutty.ld23.entity
             _waypoint = null;
             _target = null;
             _move = new Point(0, 0);
+            _actualMove = new Point(0, 0);
             _noCollide = false;
             _conversationLength = 0;
             idle();
@@ -208,7 +210,6 @@ package uk.co.zutty.ld23.entity
                 _spritemap.play("type"+_type+"_stand");
             } else {
                 _spritemap.play("type"+_type+"_walk");
-                _spritemap.flipped = _move.x >= 0;
             }
         }
         
@@ -251,6 +252,8 @@ package uk.co.zutty.ld23.entity
         
         public function startTalking():void {
             _conversationLength = 2+FP.rand(2);
+            // Face the talker
+            _spritemap.flipped = x < _target.x;
         }
 
         public function stopTalking():void {
@@ -368,13 +371,34 @@ package uk.co.zutty.ld23.entity
                 }
             }
             
-            // Move
-            if(!collide("terrain", x + _move.x, y) || _noCollide) {
-                x += _move.x;
+            // Test for collisions
+            var canMoveX:Boolean = _noCollide || !collide("terrain", x + _move.x, y);
+            var canMoveY:Boolean = _noCollide || !collide("terrain", x, y + _move.y);
+            
+            // WOrk out how much were gong to move
+            if(!canMoveX && !canMoveY) {
+                _actualMove.x = 0;                
+                _actualMove.y = 0;                
+                wander();
+            } else if(canMoveX && !canMoveY) {
+                _actualMove.x = VectorMath.magnitude(_move);
+                _actualMove.y = 0;                
+            } else if(!canMoveX && canMoveY) {
+                _actualMove.x = 0;
+                _actualMove.y = VectorMath.magnitude(_move);                
+            } else {
+                _actualMove.x = _move.x;
+                _actualMove.y = _move.y;
             }
-            if(!collide("terrain", x, y + _move.y) || _noCollide) {
-                y += _move.y;
+            
+            // Face direction of actual movement
+            if(_actualMove.x != 0) {
+                _spritemap.flipped = _actualMove.x >= 0;
             }
+
+            // Do the actal movement
+            x += _actualMove.x;
+            y += _actualMove.y;
             
             layer = -y - 24;
         }

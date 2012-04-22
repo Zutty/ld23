@@ -14,7 +14,7 @@ package uk.co.zutty.ld23
             super(640, 480, 60, false);
             
             FP.screen.color = 0xcaa2c8;
-            //FP.console.enable();
+            FP.console.enable();
             
             Text.font = "opencomic";
 

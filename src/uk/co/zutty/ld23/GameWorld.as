@@ -8,6 +8,7 @@ package uk.co.zutty.ld23 {
     import net.flashpunk.utils.Key;
     import net.noiseinstitute.basecode.VectorMath;
     
+    import uk.co.zutty.ld23.entity.Billboard;
     import uk.co.zutty.ld23.entity.Hud;
     import uk.co.zutty.ld23.entity.HutPart;
     import uk.co.zutty.ld23.entity.Terrain;
@@ -132,6 +133,8 @@ package uk.co.zutty.ld23 {
                 if(picked && picked is Voter) {
                     var v:Voter = picked as Voter;
                     v.makeMinion(_playerParty);
+                } else {
+                    add(new Billboard(_playerParty, mouseX, mouseY));
                 }
             }
         }

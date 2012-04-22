@@ -191,6 +191,7 @@ package uk.co.zutty.ld23.entity
             moveToPoint(nearest);
             _noCollide = true;
             _state = STATE_ENTER_HUT;
+            hideSpeechBubble();
         }
         
         public function exitHut():void {

@@ -57,7 +57,7 @@ package uk.co.zutty.ld23 {
             var v:Voter = new Voter(tribe, type);
             v.x = x;
             v.y = y;
-            v.wander();
+            //v.wander();
             v.tintColour = 0xaaaaaa;
             add(v);
             return v;

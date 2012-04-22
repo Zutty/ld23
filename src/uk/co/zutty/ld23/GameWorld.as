@@ -8,6 +8,7 @@ package uk.co.zutty.ld23 {
     import net.flashpunk.utils.Key;
     import net.noiseinstitute.basecode.VectorMath;
     
+    import uk.co.zutty.ld23.entity.Hud;
     import uk.co.zutty.ld23.entity.HutPart;
     import uk.co.zutty.ld23.entity.Terrain;
     import uk.co.zutty.ld23.entity.Voter;
@@ -20,6 +21,7 @@ package uk.co.zutty.ld23 {
     public class GameWorld extends ExtWorld {
         
         private static const AI_UPDATE_TIME:int = 100;
+        private static const POLL_TIME_SECONDS:Number = 60;
         
         private var _parties:Vector.<Party>;
         private var _aiPlayers:Vector.<AIPlayer>;
@@ -28,6 +30,8 @@ package uk.co.zutty.ld23 {
         private var _playerParty:Party;
         private var _tribe:Tribe;
         private var _currentPoll:Poll;
+        private var _pollTimer:Number;
+        private var _hud:Hud;
         
         public function GameWorld() {
             super();
@@ -48,6 +52,15 @@ package uk.co.zutty.ld23 {
             
             _tribe = makeTribe(320, 240, 6);
             _aiUpdateTimer = AI_UPDATE_TIME;
+            
+            _hud = new Hud(this);
+            add(_hud);
+            
+            _pollTimer = POLL_TIME_SECONDS;
+        }
+        
+        public function get pollTimer():Number {
+            return _pollTimer;
         }
         
         public function get tribe():Tribe {
@@ -75,7 +88,6 @@ package uk.co.zutty.ld23 {
             var v:Voter = new Voter(tribe, type);
             v.x = x;
             v.y = y;
-            //v.wander();
             v.tintColour = 0xaaaaaa;
             add(v);
             return v;
@@ -88,13 +100,17 @@ package uk.co.zutty.ld23 {
                 _aiUpdateTimer--;
             }
             
+            if(_pollTimer > 0) {
+                _pollTimer -= FP.elapsed;
+            }
+            
             if(_aiUpdateTimer == 0) {
                 _aiPlayers[_nextAiPlayer].update(this);
                 _nextAiPlayer = (_nextAiPlayer + 1) % _aiPlayers.length;
                 _aiUpdateTimer = AI_UPDATE_TIME;
             }
             
-            if(Input.pressed(Key.SPACE)) {
+            if(_pollTimer <= 0 && _currentPoll == null) {
                 _currentPoll = new Poll(_tribe.size, _parties);
                 
                 for each(var voter:Voter in _tribe.voters) {
@@ -103,6 +119,7 @@ package uk.co.zutty.ld23 {
             }
                 
             if(_currentPoll != null && _currentPoll.isClosed) {
+                _pollTimer = POLL_TIME_SECONDS;
                 _currentPoll.countVotes();
                 _tribe.hut.tintColour = (_currentPoll.winner) ? _currentPoll.winner.colour : 0xaaaaaa;
                 trace("turnout: "+_currentPoll.turnoutPct+"%");

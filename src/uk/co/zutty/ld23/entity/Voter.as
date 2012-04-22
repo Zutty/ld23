@@ -13,6 +13,7 @@ package uk.co.zutty.ld23.entity
     
     import uk.co.zutty.ld23.GameWorld;
     import uk.co.zutty.ld23.Main;
+    import uk.co.zutty.ld23.Waypoint;
     import uk.co.zutty.ld23.game.Party;
     import uk.co.zutty.ld23.game.Poll;
     import uk.co.zutty.ld23.game.Tribe;
@@ -37,6 +38,8 @@ package uk.co.zutty.ld23.entity
         public static const STATE_CONVERSE_READY:int = 4;
         public static const STATE_CONVERSE_TALK:int = 5;
         public static const STATE_CONVERSE_LISTEN:int = 6;
+        public static const STATE_ENTER_HUT:int = 7;
+        public static const STATE_EXIT_HUT:int = 8;
         
         private static const CONVERSATION_IDLE:Array = ["question", "weather", "plant", "hut"];
         private static const CONVERSATION_POLITICAL:Array = ["politics", "swing", "vote"];
@@ -48,12 +51,14 @@ package uk.co.zutty.ld23.entity
         private var _bubble:Spritemap;
         private var _type:int;
         private var _move:Point;
+        private var _noCollide:Boolean;
         
-        private var _waypoint:Point;
+        private var _waypoint:Waypoint;
         private var _target:Entity;
         private var _interceptWeight:Number = 0.01;
         
         private var _tribe:Tribe;
+        private var _currentPoll:Poll;
         private var _state:int;
         private var _timer:uint;
         private var _conversationLength:int;
@@ -107,6 +112,7 @@ package uk.co.zutty.ld23.entity
             _waypoint = null;
             _target = null;
             _move = new Point(0, 0);
+            _noCollide = false;
             _conversationLength = 0;
             idle();
         }
@@ -153,12 +159,13 @@ package uk.co.zutty.ld23.entity
             var p:Point = VectorMath.polar(FP.rand(360), FP.rand(200) + 100);
             p.x += _tribe.hut.x;
             p.y += _tribe.hut.y;
-            moveToPoint(p);
+            moveToPoint(new Waypoint(p.x, p.y, null));
             _state = STATE_WANDER;
         }
         
         public function idle():void {
             stop();
+            _noCollide = false;
             _state = STATE_IDLE;
         }
         
@@ -167,8 +174,31 @@ package uk.co.zutty.ld23.entity
             _state = STATE_INTERCEPT;
         }
         
+        public function enterHut():void {
+            var nearest:Waypoint;
+            var nearDist:Number;
+            
+            for each(var w:Waypoint in _tribe.hut.entryPoints) {
+                var dist:Number = Math.sqrt((x - w.x) * (x - w.x) + (y - w.y) * (y - w.y));
+                if(nearest == null || dist < nearDist) {
+                    nearest = w;
+                    nearDist = dist;
+                }
+            }
+            
+            moveToPoint(nearest);
+            _noCollide = true;
+            _state = STATE_ENTER_HUT;
+        }
+        
+        public function exitHut():void {
+            moveToPoint(_tribe.hut.exitPoint);
+            _noCollide = true;
+            _state = STATE_EXIT_HUT;
+        }
+        
         // Movement
-        public function moveToPoint(waypoint:Point):void {
+        public function moveToPoint(waypoint:Waypoint):void {
             _waypoint = waypoint;
         }
         
@@ -251,8 +281,14 @@ package uk.co.zutty.ld23.entity
         }
         
         // Voting/party stuff
-        public function vote(poll:Poll):Party {
-            return (poll.parties.indexOf(_party) != -1) ? _party : null;
+        public function vote(poll:Poll):void {
+            if(_party != null && poll.parties.indexOf(_party) != -1) {
+                // Go to the polling station
+                _currentPoll = poll;
+                enterHut();
+            } else {
+                poll.abstain();
+            }
         }
         
         override public function update():void {
@@ -264,13 +300,22 @@ package uk.co.zutty.ld23.entity
             }
             
             // If wandering, move towards waypoint
-            if(_state == STATE_WANDER && _waypoint) {
+            if((_state == STATE_WANDER || _state == STATE_ENTER_HUT || _state == STATE_EXIT_HUT) && _waypoint) {
                 FP.point.x = _waypoint.x - x;
                 FP.point.y = _waypoint.y - y;
 
                 if(VectorMath.magnitude(FP.point) <= SPEED) {
-                    _waypoint = null;
-                    idle();
+                    _waypoint = _waypoint.parent;
+                    if(_waypoint == null && _state == STATE_WANDER) {
+                        idle();
+                    } else if(_waypoint == null && _state == STATE_ENTER_HUT) {
+                        // Vote on the current poll, then exit polling station
+                        _currentPoll.castVote(_party);
+                        _currentPoll = null;
+                        exitHut();
+                    } else if(_waypoint == null && _state == STATE_EXIT_HUT) {
+                        idle();
+                    }
                 } else {
                     move(VectorMath.angle(FP.point));
                 }
@@ -324,8 +369,12 @@ package uk.co.zutty.ld23.entity
             }
             
             // Move
-            x += _move.x;
-            y += _move.y;
+            if(!collide("terrain", x + _move.x, y) || _noCollide) {
+                x += _move.x;
+            }
+            if(!collide("terrain", x, y + _move.y) || _noCollide) {
+                y += _move.y;
+            }
             
             layer = -y - 24;
         }

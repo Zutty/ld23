@@ -8,10 +8,13 @@ package uk.co.zutty.ld23.game
         private var _votes:Dictionary;
         private var _numEligable:Number;
         private var _numVoted:Number;
+        private var _numAbstained:Number;
         private var _winner:Party = null;
         
         public function Poll(numEligable:int, parties:Vector.<Party>) {
             _numEligable = numEligable;
+            _numVoted = 0;
+            _numAbstained = 0;
             _parties = parties;
             _votes = new Dictionary();
         }
@@ -20,8 +23,17 @@ package uk.co.zutty.ld23.game
             return _parties;
         }
         
+        public function get isClosed():Boolean {
+            return _numVoted + _numAbstained == _numEligable;
+        }
+        
+        public function abstain():void {
+            castVote(null);
+        }
+        
         public function castVote(party:Party):void {
             if(party == null) {
+                _numAbstained++;
                 return;
             }
             
@@ -42,6 +54,10 @@ package uk.co.zutty.ld23.game
             return _numVoted / _numEligable;
         }
         
+        public function get turnoutPct():Number {
+            return Math.round(turnout * 100)
+        }
+
         public function countVotes():void {
             var mostVotes:Number = 0;
             

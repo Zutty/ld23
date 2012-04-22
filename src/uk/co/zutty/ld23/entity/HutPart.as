@@ -34,6 +34,10 @@ package uk.co.zutty.ld23.entity
             _isFloor = part == PART_FLOOR;
             layer = _isFloor ? 65535 : -y - 72;
             
+            setHitbox(144, 78, 72, 48);
+            collidable = true;
+            this.type = "terrain";
+            
             _type = type;
             
             // HACK!

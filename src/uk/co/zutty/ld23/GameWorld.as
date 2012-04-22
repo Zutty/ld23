@@ -21,6 +21,7 @@ package uk.co.zutty.ld23 {
         private var _parties:Vector.<Party>;
         private var _playerParty:Party;
         private var _tribe:Tribe;
+        private var _currentPoll:Poll;
         
         public function GameWorld() {
             super();
@@ -68,19 +69,18 @@ package uk.co.zutty.ld23 {
             super.update();
             
             if(Input.pressed(Key.SPACE)) {
-                var poll:Poll = new Poll(_tribe.size, _parties);
+                _currentPoll = new Poll(_tribe.size, _parties);
                 
                 for each(var voter:Voter in _tribe.voters) {
-                    var vote:Party = voter.vote(poll);
-                    if(vote) {
-                        poll.castVote(vote);
-                        voter.tintColour = vote.colour;
-                    }
+                    voter.vote(_currentPoll);
                 }
+            }
                 
-                poll.countVotes();
-                
-                _tribe.hut.tintColour = (poll.winner) ? poll.winner.colour : 0xaaaaaa;
+            if(_currentPoll != null && _currentPoll.isClosed) {
+                _currentPoll.countVotes();
+                _tribe.hut.tintColour = (_currentPoll.winner) ? _currentPoll.winner.colour : 0xaaaaaa;
+                trace("turnout: "+_currentPoll.turnoutPct+"%");
+                _currentPoll = null;
             }
             
             if(Input.mousePressed) {

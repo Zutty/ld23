@@ -38,7 +38,11 @@ package uk.co.zutty.ld23.entity
         public static const STATE_CONVERSE_TALK:int = 5;
         public static const STATE_CONVERSE_LISTEN:int = 6;
         
-        private static const IDLE_CONVERSATION:Array = ["question", "weather", "plant", "hut"];
+        private static const CONVERSATION_IDLE:Array = ["question", "weather", "plant", "hut"];
+        private static const CONVERSATION_POLITICAL:Array = ["politics", "swing", "vote"];
+        private static const CONVERSATION_AGREE:Array = ["happy", "vote"];
+        private static const CONVERSATION_APATY:Array = ["indifferent", "question"];
+        private static const CONVERSATION_DISAGREE:Array = ["angry", "no"];
         
         private var _spritemap:Spritemap;
         private var _bubble:Spritemap;
@@ -47,6 +51,7 @@ package uk.co.zutty.ld23.entity
         
         private var _waypoint:Point;
         private var _target:Entity;
+        private var _interceptWeight:Number = 0.01;
         
         private var _tribe:Tribe;
         private var _state:int;
@@ -72,11 +77,19 @@ package uk.co.zutty.ld23.entity
             setHitbox(48, 48, 24, 24);
             
             _bubble = new Spritemap(ICONS_IMAGE, 24, 24);
-            _bubble.add("minion", [0]);
+            _bubble.add("rosette", [0]);
             _bubble.add("question", [2]);
+            _bubble.add("politics", [3]);
+            _bubble.add("happy", [4]);
+            _bubble.add("indifferent", [5]);
+            _bubble.add("angry", [6]);
             _bubble.add("weather", [7]);
+            _bubble.add("no", [8]);
             _bubble.add("plant", [9]);
             _bubble.add("hut", [10]);
+            _bubble.add("swing", [11]);
+            _bubble.add("vote", [12]);
+            _bubble.add("flag", [13]);
             _bubble.centerOrigin();
             _bubble.y -= 30;
             _bubble.visible = false;
@@ -129,8 +142,10 @@ package uk.co.zutty.ld23.entity
         public function makeMinion(party:Party):void {
             _isMinion = true;
             this.party = party;
-            _bubble.play("minion");
+            _bubble.play("rosette");
             _bubble.visible = true;
+            // Once he becomes a minion, all he'll do is intercept
+            _interceptWeight = 1.0;
         }
 
         // States
@@ -186,7 +201,7 @@ package uk.co.zutty.ld23.entity
             _move.x = 0;
             _move.y = 0;
             _spritemap.play("type"+_type+"_talk");
-            _bubble.play(FP.choose(IDLE_CONVERSATION));
+            _bubble.play(FP.choose(isMinion ? CONVERSATION_POLITICAL : CONVERSATION_IDLE));
             _bubble.visible = true;
             _timer = TALK_TIME + FP.rand(TALK_TIME_VARIANCE);
         }
@@ -194,9 +209,13 @@ package uk.co.zutty.ld23.entity
         public function listen():void {
             stop();
             _state = STATE_CONVERSE_LISTEN;
+            hideSpeechBubble();
+        }
+        
+        private function hideSpeechBubble():void {
             _bubble.visible = isMinion;
             if(isMinion) {
-                _bubble.play("minion");
+                _bubble.play("rosette");
             }
         }
         
@@ -205,9 +224,19 @@ package uk.co.zutty.ld23.entity
         }
 
         public function stopTalking():void {
+            var v:Voter = _target as Voter;
             idle();
-            (_target as Voter).idle();
-            _bubble.visible = false;
+            v.idle();
+            
+            // Spread party
+            if(_isMinion) {
+                v.party = _party;
+            } else if(v._isMinion) {
+                party = v._party;
+            }
+            
+            hideSpeechBubble();
+            
         }
 
         public function get isConversing():Boolean {
@@ -223,7 +252,7 @@ package uk.co.zutty.ld23.entity
         
         // Voting/party stuff
         public function vote(poll:Poll):Party {
-            return FP.choose(poll.parties);
+            return (poll.parties.indexOf(_party) != -1) ? _party : null;
         }
         
         override public function update():void {
@@ -286,7 +315,7 @@ package uk.co.zutty.ld23.entity
             
             // If doing nothing, decide on something to do.
             if(_state == STATE_IDLE) {
-                if(Math.random() < 0.05 && findTarget()) {
+                if(Math.random() < _interceptWeight && findTarget()) {
                     intercept();
                 } else if(Math.random() < 0.1) {
                     // Wander again!
@@ -309,12 +338,15 @@ package uk.co.zutty.ld23.entity
                 return null;
             }
             
-            var target:Entity = Main.gameworld.nearestToEntityFilter("mob", this, isNotTalking);
+            var target:Entity = Main.gameworld.nearestToEntityFilter("mob", this, isMinion ? isNotTalkingRecruit : isNotTalking);
             
             var valid:Boolean = target != null && distanceFrom(target) <= INTERCEPT_RANGE;
             return valid ? target : null;
         }
         
+        private function isNotTalkingRecruit(v:Voter):Boolean {
+            return !v.isConversing && v.party == null;
+        }
         private function isNotTalking(v:Voter):Boolean {
             return !v.isConversing;
         }

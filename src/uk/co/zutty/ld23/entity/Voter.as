@@ -38,6 +38,8 @@ package uk.co.zutty.ld23.entity
         public static const STATE_CONVERSE_TALK:int = 5;
         public static const STATE_CONVERSE_LISTEN:int = 6;
         
+        private static const IDLE_CONVERSATION:Array = ["question", "weather", "plant", "hut"];
+        
         private var _spritemap:Spritemap;
         private var _bubble:Spritemap;
         private var _type:int;
@@ -67,6 +69,9 @@ package uk.co.zutty.ld23.entity
             _bubble = new Spritemap(ICONS_IMAGE, 24, 24);
             _bubble.add("member", [0]);
             _bubble.add("question", [2]);
+            _bubble.add("weather", [7]);
+            _bubble.add("plant", [9]);
+            _bubble.add("hut", [10]);
             _bubble.centerOrigin();
             _bubble.y -= 30;
             _bubble.play("question");
@@ -154,6 +159,7 @@ package uk.co.zutty.ld23.entity
             _move.x = 0;
             _move.y = 0;
             _spritemap.play("type"+_type+"_talk");
+            _bubble.play(FP.choose(IDLE_CONVERSATION));
             _bubble.visible = true;
             _timer = TALK_TIME + FP.rand(TALK_TIME_VARIANCE);
         }
@@ -162,6 +168,11 @@ package uk.co.zutty.ld23.entity
             stop();
             _state = STATE_CONVERSE_LISTEN;
             _bubble.visible = false;
+        }
+        
+        public function startTalking():void {
+            type = "mob_talk";
+            _conversationLength = 2+FP.rand(2);
         }
 
         public function stopTalking():void {
@@ -222,8 +233,7 @@ package uk.co.zutty.ld23.entity
 
                         // If target moves into interaction range and is another voter, then prepare to start talking
                         if(voter.converseInterrupt()) {
-                            type = "mob_talk";
-                            _conversationLength = 2+FP.rand(2);
+                            startTalking();
                             voter._target = this;
                             talkTo(voter);
                         } else {
